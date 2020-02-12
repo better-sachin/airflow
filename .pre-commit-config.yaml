@@ -201,7 +201,7 @@ repos:
         args:
           - --convention=pep257
           - --add-ignore=D100,D102,D104,D105,D107,D205,D400,D401
-        exclude: ^tests/.*\.py$|^scripts/.*\.py$|^dev|^provider_packages|^kubernetes_tests|.*example_dags/.*
+        exclude: ^tests/.*\.py$|^scripts/.*\.py$|^dev|^provider_packages|^kubernetes_tests|^astronomer-.*\.py$|.*example_dags/.*  # yamllint disable rule:line-length
   - repo: local
     hooks:
       - id: lint-openapi
@@ -398,6 +398,7 @@ repos:
         name: Run BATS bash tests for changed Breeze bash files
         language: system
         entry: "./scripts/ci/pre_commit/pre_commit_bat_tests.sh tests/bats/breeze/"
+        exclude: astronomer-certified-setup.py
         files: ^breeze$|^breeze-complete$|^tests/bats/breeze
         pass_filenames: false
       - id: bats-tests
@@ -451,14 +452,14 @@ repos:
         language: system
         entry: "./scripts/ci/pre_commit/pre_commit_mypy.sh"
         files: \.py$
-        exclude: ^dev|^provider_packages
+        exclude: ^dev|^provider_packages|astronomer-certified-setup.py
         require_serial: true
       - id: pylint
         name: Run pylint
         language: system
         entry: "./scripts/ci/pre_commit/pre_commit_pylint.sh"
         files: \.py$
-        exclude: ^scripts/.*\.py$|^dev|^provider_packages
+        exclude: ^scripts/.*\.py$|^dev|^provider_packages|astronomer-certified-setup.py$
         pass_filenames: true
         require_serial: true
       - id: flake8
