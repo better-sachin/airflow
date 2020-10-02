@@ -19,6 +19,8 @@ import contextlib
 from functools import wraps
 from typing import Callable, TypeVar
 
+from sqlalchemy.exc import OperationalError
+
 from airflow import settings
 
 
@@ -41,7 +43,7 @@ def create_session():
 RT = TypeVar("RT")  # pylint: disable=invalid-name
 
 
-def provide_session(func: Callable[..., RT]) -> Callable[..., RT]:
+def provide_session(func: Callable[..., RT], attempts=2, exceptions=(OperationalError,)) -> Callable[..., RT]:
     """
     Function decorator that provides a session if it isn't provided.
     If you want to reuse a session or run the function as part of a
@@ -57,11 +59,22 @@ def provide_session(func: Callable[..., RT]) -> Callable[..., RT]:
             func_params.index(arg_session) < len(args)
         session_in_kwargs = arg_session in kwargs
 
-        if session_in_kwargs or session_in_args:
-            return func(*args, **kwargs)
+        def retryable_transaction(session, attempts=2, exceptions=(OperationalError,)):
+            for i in range(attempts):
+                try:
+                    return func(*args, **kwargs)
+                except exceptions:
+                    if i == (attempts - 1):
+                        raise
+                    session.rollback()
+
+        if session_in_kwargs:
+            return retryable_transaction(kwargs[arg_session], attempts, exceptions)
+        elif session_in_args:
+            return retryable_transaction(func_params[func_params.index(arg_session)], attempts, exceptions)
         else:
             with create_session() as session:
                 kwargs[arg_session] = session
-                return func(*args, **kwargs)
+                return retryable_transaction(session, attempts, exceptions)
 
     return wrapper
