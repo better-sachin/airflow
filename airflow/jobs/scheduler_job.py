@@ -295,7 +295,7 @@ class DagFileProcessorProcess(AbstractDagFileProcessorProcess, LoggingMixin, Mul
                 self._parent_channel.close()
                 return True
             except EOFError:
-                self.log.warning("TEST: EOFError received", exc_info=True)
+                self.log.warning("TEST: EOFError received on %s", self, exc_info=True)
 
         if not self._process.is_alive():
             self._done = True
@@ -304,7 +304,7 @@ class DagFileProcessorProcess(AbstractDagFileProcessorProcess, LoggingMixin, Mul
             self._parent_channel.close()
             return True
         else:
-            self.log.warning("TEST: process still alive")
+            self.log.warning("TEST: process %d still alive %s", self.pid, self)
 
         return False
 
