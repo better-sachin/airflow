@@ -19,7 +19,6 @@ import contextlib
 from functools import wraps
 from typing import Callable, TypeVar
 
-import tenacity
 from sqlalchemy.exc import OperationalError
 
 from airflow import settings
@@ -44,7 +43,7 @@ def create_session():
 RT = TypeVar("RT")  # pylint: disable=invalid-name
 
 
-def provide_session(func: Callable[..., RT]) -> Callable[..., RT]:
+def provide_session(func: Callable[..., RT], attempts=2, exceptions=(OperationalError,)) -> Callable[..., RT]:
     """
     Function decorator that provides a session if it isn't provided.
     If you want to reuse a session or run the function as part of a
@@ -60,27 +59,24 @@ def provide_session(func: Callable[..., RT]) -> Callable[..., RT]:
             func_params.index(arg_session) < len(args)
         session_in_kwargs = arg_session in kwargs
 
-        @tenacity.retry(
-            retry=tenacity.retry_if_exception_type((OperationalError, )),
-            stop=tenacity.stop_after_attempt(2),    # TODO: Make this configurable
-            wait=tenacity.wait_exponential(max=5),    # TODO: Make this configurable
-        )
-        def retryable_transaction(session=None):
-            try:
-                return func(*args, **kwargs)
-            except OperationalError:
-                if session:
+        def retryable_transaction(session, attempts=2, exceptions=(OperationalError,)):
+            for i in range(attempts):
+                try:
+                    return func(*args, **kwargs)
+                except exceptions:
+                    if i == (attempts - 1):
+                        raise
                     session.rollback()
-                raise
 
         if session_in_kwargs:
-            return retryable_transaction()
+            return retryable_transaction(kwargs[arg_session], attempts, exceptions)
         elif session_in_args:
-            return retryable_transaction()
+            return retryable_transaction(func_params[func_params.index(arg_session)], attempts, exceptions)
         else:
             with create_session() as session:
                 kwargs[arg_session] = session
-                return retryable_transaction(session)
+                return retryable_transaction(session, attempts, exceptions)
+
     return wrapper
 
 #
