@@ -82,3 +82,21 @@ def provide_session(func: Callable[..., RT]) -> Callable[..., RT]:
                 kwargs[arg_session] = session
                 return retryable_transaction(session)
     return wrapper
+
+#
+# @contextlib.contextmanager
+# def retryable_transaction(session, attempts=3, exceptions=(OperationalError,)):
+#     try:
+#         with tenacity.Retrying(
+#             retry=tenacity.retry_if_exception_type(exception_types=exceptions),
+#             wait=tenacity.wait_random_exponential(multiplier=0.2, max=3),
+#             stop=tenacity.stop_after_attempt(attempts)
+#         ):
+#             yield session
+#     except exceptions:
+#         session.rollback()
+#         raise
+#
+#     # https://github.com/nameko/nameko-sqlalchemy/blob/master/nameko_sqlalchemy/transaction_retry.py
+#     # https://github.com/bslatkin/dpxdt/blob/2e582a9285c3b6abdc00dbb3f0430b6d7e4a647c/dpxdt/server/utils.py#L37-L58
+#
