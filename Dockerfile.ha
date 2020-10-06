@@ -301,7 +301,7 @@ LABEL org.apache.airflow.gid="0"
 LABEL org.apache.airflow.buildId=${BUILD_ID}
 LABEL org.apache.airflow.commitSha=${COMMIT_SHA}
 
-RUN pip install py-spy
+RUN pip install -U tenacity
 
 EXPOSE 8080
 
