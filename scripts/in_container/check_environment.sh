@@ -146,6 +146,10 @@ if [[ ${EXIT_CODE} != 0 ]]; then
     exit 254
 fi
 
+
+PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+set -x
+
 resetdb_if_requested
 startairflow_if_requested
 
