@@ -133,6 +133,13 @@ def init_error_handlers(app: Flask):
     app.register_error_handler(404, views.circles)
 
 
+def set_cors_headers_on_response(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = '*'
+    return response
+
+
 def init_api_connexion(app: Flask) -> None:
     """Initialize Stable API"""
     spec_dir = path.join(ROOT_APP_DIR, 'api_connexion', 'openapi')
@@ -141,6 +148,7 @@ def init_api_connexion(app: Flask) -> None:
     api_bp = connexion_app.add_api(
         specification='v1.yaml', base_path='/api/v1', validate_responses=True, strict_validation=True
     ).blueprint
+    app.after_request(set_cors_headers_on_response)
     app.register_error_handler(ProblemException, common_error_handler)
     app.extensions['csrf'].exempt(api_bp)
 
