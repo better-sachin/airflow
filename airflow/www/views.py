@@ -33,6 +33,7 @@ from urllib.parse import unquote, urlparse
 import lazy_object_proxy
 import nvd3
 import sqlalchemy as sqla
+import yaml
 from flask import (
     Markup,
     Response,
@@ -866,7 +867,7 @@ class Airflow(AirflowBaseView):  # noqa: D101  pylint: disable=too-many-public-m
             tags=tags,
         )
 
-    @expose('/rendered')
+    @expose('/rendered-templates')
     @auth.has_access(
         [
             (permissions.ACTION_CAN_READ, permissions.RESOURCE_DAG),
@@ -874,7 +875,7 @@ class Airflow(AirflowBaseView):  # noqa: D101  pylint: disable=too-many-public-m
         ]
     )
     @action_logging
-    def rendered(self):
+    def rendered_templates(self):
         """Get rendered Dag."""
         dag_id = request.args.get('dag_id')
         task_id = request.args.get('task_id')
@@ -923,6 +924,54 @@ class Airflow(AirflowBaseView):  # noqa: D101  pylint: disable=too-many-public-m
             root=root,
             title=title,
         )
+
+    @expose('/rendered-k8s')
+    @auth.has_access(
+        [
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_DAG),
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_TASK_INSTANCE),
+        ]
+    )
+    @action_logging
+    def rendered_k8s(self):
+        """Get rendered Dag."""
+        dag_id = request.args.get('dag_id')
+        task_id = request.args.get('task_id')
+        execution_date = request.args.get('execution_date')
+        dttm = timezone.parse(execution_date)
+        form = DateTimeForm(data={'execution_date': dttm})
+        root = request.args.get('root', '')
+
+        logging.info("Retrieving rendered templates.")
+        dag = current_app.dag_bag.get_dag(dag_id)
+
+        task = copy.copy(dag.get_task(task_id))
+        ti = models.TaskInstance(task=task, execution_date=dttm)
+        try:
+            pod_spec = ti.render_k8s_pod_yaml()
+        except AirflowException as e:  # pylint: disable=broad-except
+            msg = "Error rendering template: " + escape(e)
+            if e.__cause__:  # pylint: disable=using-constant-test
+                msg += Markup("<br><br>OriginalError: ") + escape(e.__cause__)
+            flash(msg, "error")
+        except Exception as e:  # pylint: disable=broad-except
+            flash("Error rendering template: " + str(e), "error")
+        title = "Rendered K8s Pod Spec"
+        html_dict = {}
+        renderers = wwwutils.get_attr_renderer()
+        content = yaml.dump(pod_spec)
+        content = renderers["yaml"](content)
+        html_dict['k8s'] = content
+
+        return self.render_template(
+            'airflow/ti_code.html',
+            html_dict=html_dict,
+            dag=dag,
+            task_id=task_id,
+            execution_date=execution_date,
+            form=form,
+            root=root,
+            title=title)
 
     @expose('/get_logs_with_metadata')
     @auth.has_access(

@@ -1665,6 +1665,34 @@ class TaskInstance(Base, LoggingMixin):  # pylint: disable=R0902,R0904
 
         self.task.render_template_fields(context)
 
+    def render_k8s_pod_yaml(self) -> Optional[str]:
+        """Render k8s pod yaml"""
+        from kubernetes.client.api_client import ApiClient
+
+        from airflow.executors.kubernetes_executor import KubeConfig, create_pod_id
+        from airflow.kubernetes.pod_generator import PodGenerator
+        from airflow.settings import pod_mutation_hook
+
+        kube_config = KubeConfig()
+        pod = PodGenerator.construct_pod(
+            dag_id=self.dag_id,
+            task_id=self.task_id,
+            pod_id=create_pod_id(
+                self.dag_id, self.task_id),
+            try_number=self.try_number,
+            kube_image=kube_config.kube_image,
+            date=self.execution_date,
+            command=self.command_as_list(),
+            pod_override_object=PodGenerator.from_obj(self.executor_config),
+            scheduler_job_id="worker-config",
+            namespace=kube_config.executor_namespace,
+            base_worker_pod=PodGenerator.deserialize_model_file(kube_config.pod_template_file)
+        )
+        pod_mutation_hook(pod)
+        api_client = ApiClient()
+        sanitized_pod = api_client.sanitize_for_serialization(pod)
+        return sanitized_pod
+
     def get_email_subject_content(self, exception):
         """Get the email subject content for exceptions."""
         # For a ti from DB (without ti.task), return the default value

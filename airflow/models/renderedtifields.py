@@ -40,6 +40,7 @@ class RenderedTaskInstanceFields(Base):
     task_id = Column(String(ID_LEN), primary_key=True)
     execution_date = Column(UtcDateTime, primary_key=True)
     rendered_fields = Column(sqlalchemy_jsonfield.JSONField(json=json), nullable=False)
+    k8s_pod_yaml = Column(sqlalchemy_jsonfield.JSONField(json=json), nullable=True)
 
     def __init__(self, ti: TaskInstance, render_templates=True):
         self.dag_id = ti.dag_id
@@ -49,6 +50,7 @@ class RenderedTaskInstanceFields(Base):
         self.ti = ti
         if render_templates:
             ti.render_templates()
+        self.k8s_pod_yaml = ti.render_k8s_pod_yaml()
         self.rendered_fields = {
             field: serialize_template_field(getattr(self.task, field)) for field in self.task.template_fields
         }
@@ -78,6 +80,29 @@ class RenderedTaskInstanceFields(Base):
         if result:
             rendered_fields = result.rendered_fields
             return rendered_fields
+        else:
+            return None
+
+    @classmethod
+    @provide_session
+    def get_k8s_pod_yaml(cls, ti: TaskInstance, session: Session = None) -> Optional[str]:
+        """
+        Get templated field for a TaskInstance from the RenderedTaskInstanceFields
+        table.
+
+        :param ti: Task Instance
+        :param session: SqlAlchemy Session
+        :return: Rendered Templated TI field
+        """
+        result = session.query(cls.rendered_fields).filter(
+            cls.dag_id == ti.dag_id,
+            cls.task_id == ti.task_id,
+            cls.execution_date == ti.execution_date
+        ).one_or_none()
+
+        if result:
+            k8s_pod_yaml = result.k8s_pod_yaml
+            return k8s_pod_yaml
         else:
             return None
 

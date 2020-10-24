@@ -65,6 +65,7 @@ def init_jinja_globals(app):
             'state_color_mapping': STATE_COLORS,
             'airflow_version': airflow_version,
             'git_version': git_version,
+            'conf_core_executor': conf.get('core', 'EXECUTOR'),
         }
 
         if 'analytics_tool' in conf.getsection('webserver'):

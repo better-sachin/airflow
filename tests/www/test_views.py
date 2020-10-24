@@ -676,8 +676,8 @@ class TestAirflowBaseViews(TestBase):
         resp = self.client.get(url, follow_redirects=True)
         self.check_content_in_response('XCom', resp)
 
-    def test_rendered(self):
-        url = 'rendered?task_id=runme_0&dag_id=example_bash_operator&execution_date={}'.format(
+    def test_rendered_template(self):
+        url = 'rendered-templates?task_id=runme_0&dag_id=example_bash_operator&execution_date={}'.format(
             self.percent_encode(self.EXAMPLE_DAG_DEFAULT_DATE)
         )
         resp = self.client.get(url, follow_redirects=True)
@@ -2129,7 +2129,7 @@ class TestDagACLView(TestBase):
         resp = self.client.get(url, follow_redirects=True)
         self.check_content_in_response('example_subdag_operator', resp)
 
-    def test_rendered_success(self):
+    def test_rendered_template_success(self):
         self.logout()
         username = 'rendered_success_user'
         self.create_user_and_login(
@@ -2142,36 +2142,27 @@ class TestDagACLView(TestBase):
             ],
         )
         self.login(username=username, password=username)
-
-        url = 'rendered?task_id=runme_0&dag_id=example_bash_operator&execution_date={}'.format(
+        url = 'rendered-templates?task_id=runme_0&dag_id=example_bash_operator&execution_date={}'.format(
             self.percent_encode(self.default_date)
         )
         resp = self.client.get(url, follow_redirects=True)
         self.check_content_in_response('Rendered Template', resp)
 
-    def test_rendered_failure(self):
+    def test_rendered_template_failure(self):
         self.logout()
         self.login(username='dag_faker', password='dag_faker')
-        url = 'rendered?task_id=runme_0&dag_id=example_bash_operator&execution_date={}'.format(
+        url = 'rendered-templates?task_id=runme_0&dag_id=example_bash_operator&execution_date={}'.format(
             self.percent_encode(self.default_date)
         )
         resp = self.client.get(url, follow_redirects=True)
         self.check_content_not_in_response('Rendered Template', resp)
 
-    def test_rendered_success_for_all_dag_user(self):
-        self.create_user_and_login(
-            username='rendered_success_for_all_dag_user_user',
-            role_name='rendered_success_for_all_dag_user_role',
-            perms=[
-                (permissions.ACTION_CAN_READ, permissions.RESOURCE_DAG),
-                (permissions.ACTION_CAN_READ, permissions.RESOURCE_TASK_INSTANCE),
-                (permissions.ACTION_CAN_READ, permissions.RESOURCE_WEBSITE),
-            ],
-        )
-
-        url = 'rendered?task_id=runme_0&dag_id=example_bash_operator&execution_date={}'.format(
-            self.percent_encode(self.default_date)
-        )
+    def test_rendered_template_success_for_all_dag_user(self):
+        self.logout()
+        self.login(username='all_dag_user',
+                   password='all_dag_user')
+        url = ('rendered-templates?task_id=runme_0&dag_id=example_bash_operator&execution_date={}'
+               .format(self.percent_encode(self.default_date)))
         resp = self.client.get(url, follow_redirects=True)
         self.check_content_in_response('Rendered Template', resp)
 
@@ -2629,7 +2620,7 @@ class TestRenderedView(TestBase):
         with create_session() as session:
             session.query(RTIF).delete()
 
-    def test_rendered_view(self):
+    def test_rendered_template_view(self):
         """
         Test that the Rendered View contains the values from RenderedTaskInstanceFields
         """
@@ -2639,21 +2630,21 @@ class TestRenderedView(TestBase):
         with create_session() as session:
             session.add(RTIF(ti))
 
-        url = 'rendered?task_id=task1&dag_id=testdag&execution_date={}'.format(
+        url = 'rendered-templates?task_id=task1&dag_id=testdag&execution_date={}'.format(
             self.percent_encode(self.default_date)
         )
 
         resp = self.client.get(url, follow_redirects=True)
         self.check_content_in_response("testdag__task1__20200301", resp)
 
-    def test_rendered_view_for_unexecuted_tis(self):
+    def test_rendered_template_view_for_unexecuted_tis(self):
         """
         Test that the Rendered View is able to show rendered values
         even for TIs that have not yet executed
         """
         self.assertEqual(self.task1.bash_command, '{{ task_instance_key_str }}')
 
-        url = 'rendered?task_id=task1&dag_id=task1&execution_date={}'.format(
+        url = 'rendered-templates?task_id=task1&dag_id=task1&execution_date={}'.format(
             self.percent_encode(self.default_date)
         )
 
@@ -2670,7 +2661,7 @@ class TestRenderedView(TestBase):
         )
         self.assertEqual(self.task2.bash_command, 'echo {{ fullname("Apache", "Airflow") | hello }}')
 
-        url = 'rendered?task_id=task2&dag_id=testdag&execution_date={}'.format(
+        url = 'rendered-templates?task_id=task2&dag_id=testdag&execution_date={}'.format(
             self.percent_encode(self.default_date)
         )
 
