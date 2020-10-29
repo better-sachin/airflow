@@ -103,6 +103,7 @@ class TemplateWithContext(NamedTuple):
             'state_color_mapping',
             'airflow_version',
             'git_version',
+            'k8s_or_k8scelery_executor',
             # airflow.www.static_config.configure_manifest_files
             'url_for_asset',
             # airflow.www.views.AirflowBaseView.render_template
@@ -683,14 +684,20 @@ class TestAirflowBaseViews(TestBase):
         resp = self.client.get(url, follow_redirects=True)
         self.check_content_in_response('Rendered Template', resp)
 
-    def test_rendered_k8s(self):
+    @parameterized.expand([('KubernetesExecutor'), ('CeleryKubernetesExecutor')])
+    def test_rendered_k8s(self, executor):
+        url = ('rendered-k8s?task_id=runme_0&dag_id=example_bash_operator&execution_date={}'
+            .format(self.percent_encode(self.EXAMPLE_DAG_DEFAULT_DATE)))
+        with conf_vars({('core', 'executor'): executor}):
+            resp = self.client.get(url, follow_redirects=True)
+            self.check_content_in_response('K8s Pod Spec', resp)
+
+    @conf_vars({('core', 'executor'): 'LocalExecutor'})
+    def test_rendered_k8s_without_k8s(self):
         url = ('rendered-k8s?task_id=runme_0&dag_id=example_bash_operator&execution_date={}'
                .format(self.percent_encode(self.EXAMPLE_DAG_DEFAULT_DATE)))
         resp = self.client.get(url, follow_redirects=True)
-        if conf.get('core', 'EXECUTOR') is 'KubernetesExecutor':
-            self.check_content_in_response('K8s Pod Spec', resp)
-        else:
-            self.assertEqual(404, resp.status_code)
+        self.assertEqual(404, resp.status_code)
 
     def test_blocked(self):
         url = 'blocked'

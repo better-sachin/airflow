@@ -25,6 +25,7 @@ from typing import Any, Callable, Dict, Generator, Iterable, List, Optional, Typ
 
 from jinja2 import Template
 
+from airflow.configuration import conf
 from airflow.exceptions import AirflowException
 from airflow.utils.module_loading import import_string
 
@@ -202,3 +203,11 @@ def cross_downstream(*args, **kwargs):
         stacklevel=2,
     )
     return import_string('airflow.models.baseoperator.cross_downstream')(*args, **kwargs)
+
+
+def is_k8s_or_k8scelery_executor() -> bool:
+    """Determines if the executor utilizes k8s."""
+    conf_executor = conf.get('core', 'EXECUTOR')
+    if conf_executor in ('KubernetesExecutor', 'CeleryKubernetesExecutor'):
+        return True
+    return False

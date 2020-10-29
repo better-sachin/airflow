@@ -137,7 +137,7 @@
           <a id="btn_rendered" class="btn btn-sm" data-base-url="{{ url_for('Airflow.rendered_templates') }}">
             Rendered
           </a>
-          {% if conf_core_executor == 'KubernetesExecutor' %}
+          {% if k8s_or_k8scelery_executor %}
             <a id="btn_rendered_k8s" class="btn btn-sm" data-base-url="{{ url_for('Airflow.rendered_k8s') }}">
               K8s Pod Spec
             </a>

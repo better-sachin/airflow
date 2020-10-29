@@ -23,6 +23,7 @@ import pendulum
 import airflow
 from airflow.configuration import conf
 from airflow.settings import STATE_COLORS
+from airflow.utils.helpers import is_k8s_or_k8scelery_executor
 from airflow.utils.platform import get_airflow_git_version
 
 
@@ -53,6 +54,8 @@ def init_jinja_globals(app):
 
     git_version = get_airflow_git_version()
 
+    k8s_or_k8scelery_executor = is_k8s_or_k8scelery_executor()
+
     def prepare_jinja_globals():
         extra_globals = {
             'server_timezone': server_timezone,
@@ -65,7 +68,7 @@ def init_jinja_globals(app):
             'state_color_mapping': STATE_COLORS,
             'airflow_version': airflow_version,
             'git_version': git_version,
-            'conf_core_executor': conf.get('core', 'EXECUTOR'),
+            'k8s_or_k8scelery_executor': k8s_or_k8scelery_executor
         }
 
         if 'analytics_tool' in conf.getsection('webserver'):

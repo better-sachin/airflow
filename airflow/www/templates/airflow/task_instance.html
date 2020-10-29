@@ -41,7 +41,7 @@
     <li><a href="{{ url_for('Airflow.rendered_templates', dag_id=dag.dag_id, task_id=task_id, execution_date=execution_date) }}">
         <span class="material-icons" aria-hidden="true">code</span>
       Rendered Template</a></li>
-    {% if conf_core_executor == 'KubernetesExecutor' %}
+    {% if k8s_or_k8scelery_executor %}
       <li><a href="{{ url_for('Airflow.rendered_k8s', dag_id=dag.dag_id, task_id=task_id, execution_date=execution_date) }}">
         {{ icon('kubernetes') }}
         K8s Pod Spec</a></li>
