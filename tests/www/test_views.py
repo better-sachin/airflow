@@ -683,6 +683,15 @@ class TestAirflowBaseViews(TestBase):
         resp = self.client.get(url, follow_redirects=True)
         self.check_content_in_response('Rendered Template', resp)
 
+    def test_rendered_k8s(self):
+        url = ('rendered-k8s?task_id=runme_0&dag_id=example_bash_operator&execution_date={}'
+               .format(self.percent_encode(self.EXAMPLE_DAG_DEFAULT_DATE)))
+        resp = self.client.get(url, follow_redirects=True)
+        if conf.get('core', 'EXECUTOR') is 'KubernetesExecutor':
+            self.check_content_in_response('K8s Pod Spec', resp)
+        else:
+            self.assertEqual(404, resp.status_code)
+
     def test_blocked(self):
         url = 'blocked'
         resp = self.client.post(url, follow_redirects=True)
