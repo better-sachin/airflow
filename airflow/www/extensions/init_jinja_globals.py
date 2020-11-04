@@ -68,7 +68,7 @@ def init_jinja_globals(app):
             'state_color_mapping': STATE_COLORS,
             'airflow_version': airflow_version,
             'git_version': git_version,
-            'k8s_or_k8scelery_executor': k8s_or_k8scelery_executor
+            'k8s_or_k8scelery_executor': k8s_or_k8scelery_executor,
         }
 
         if 'analytics_tool' in conf.getsection('webserver'):

@@ -686,16 +686,18 @@ class TestAirflowBaseViews(TestBase):
 
     @parameterized.expand([('KubernetesExecutor'), ('CeleryKubernetesExecutor')])
     def test_rendered_k8s(self, executor):
-        url = ('rendered-k8s?task_id=runme_0&dag_id=example_bash_operator&execution_date={}'
-            .format(self.percent_encode(self.EXAMPLE_DAG_DEFAULT_DATE)))
+        url = 'rendered-k8s?task_id=runme_0&dag_id=example_bash_operator&execution_date={}'.format(
+            self.percent_encode(self.EXAMPLE_DAG_DEFAULT_DATE)
+        )
         with conf_vars({('core', 'executor'): executor}):
             resp = self.client.get(url, follow_redirects=True)
             self.check_content_in_response('K8s Pod Spec', resp)
 
     @conf_vars({('core', 'executor'): 'LocalExecutor'})
     def test_rendered_k8s_without_k8s(self):
-        url = ('rendered-k8s?task_id=runme_0&dag_id=example_bash_operator&execution_date={}'
-               .format(self.percent_encode(self.EXAMPLE_DAG_DEFAULT_DATE)))
+        url = 'rendered-k8s?task_id=runme_0&dag_id=example_bash_operator&execution_date={}'.format(
+            self.percent_encode(self.EXAMPLE_DAG_DEFAULT_DATE)
+        )
         resp = self.client.get(url, follow_redirects=True)
         self.assertEqual(404, resp.status_code)
 

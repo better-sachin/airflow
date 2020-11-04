@@ -35,9 +35,9 @@ import nvd3
 import sqlalchemy as sqla
 import yaml
 from flask import (
-    abort,
     Markup,
     Response,
+    abort,
     current_app,
     escape,
     flash,
