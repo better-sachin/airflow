@@ -1691,8 +1691,7 @@ class TaskInstance(Base, LoggingMixin):  # pylint: disable=R0902,R0904
             base_worker_pod=PodGenerator.deserialize_model_file(kube_config.pod_template_file),
         )
         pod_mutation_hook(pod)
-        api_client = ApiClient()
-        sanitized_pod = api_client.sanitize_for_serialization(pod)
+        sanitized_pod = ApiClient().sanitize_for_serialization(pod)
         return sanitized_pod
 
     def get_email_subject_content(self, exception):
