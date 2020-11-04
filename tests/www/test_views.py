@@ -1166,7 +1166,7 @@ class TestRedocView(TestBase):
         self.assertEqual(templates[0].name, 'airflow/redoc.html')
         self.assertEqual(
             templates[0].local_context,
-            {'conf_core_executor': 'LocalExecutor', 'openapi_spec_url': '/api/v1/openapi.yaml'},
+            {'conf_core_executor': mock.ANY, 'openapi_spec_url': '/api/v1/openapi.yaml'},
         )
 
 
