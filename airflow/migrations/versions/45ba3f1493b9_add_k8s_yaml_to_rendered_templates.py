@@ -32,7 +32,7 @@ from airflow.settings import json
 
 # revision identifiers, used by Alembic.
 revision = '45ba3f1493b9'
-down_revision = '364159666cbd'
+down_revision = '2c6edca13270'
 branch_labels = None
 depends_on = None
 
