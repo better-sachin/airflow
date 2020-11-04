@@ -96,7 +96,7 @@ class RenderedTaskInstanceFields(Base):
         :return: Rendered Templated TI field
         """
         result = (
-            session.query(cls.rendered_fields)
+            session.query(cls.k8s_pod_yaml)
             .filter(
                 cls.dag_id == ti.dag_id, cls.task_id == ti.task_id, cls.execution_date == ti.execution_date
             )
