@@ -50,7 +50,8 @@ class RenderedTaskInstanceFields(Base):
         self.ti = ti
         if render_templates:
             ti.render_templates()
-        self.k8s_pod_yaml = ti.render_k8s_pod_yaml()
+        if is_k8s_or_k8scelery_executor():
+            self.k8s_pod_yaml = ti.render_k8s_pod_yaml()
         self.rendered_fields = {
             field: serialize_template_field(getattr(self.task, field)) for field in self.task.template_fields
         }
