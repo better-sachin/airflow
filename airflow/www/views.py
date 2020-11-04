@@ -971,7 +971,8 @@ class Airflow(AirflowBaseView):  # noqa: D101  pylint: disable=too-many-public-m
             execution_date=execution_date,
             form=form,
             root=root,
-            title=title)
+            title=title,
+        )
 
     @expose('/get_logs_with_metadata')
     @auth.has_access(

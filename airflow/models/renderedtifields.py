@@ -94,11 +94,13 @@ class RenderedTaskInstanceFields(Base):
         :param session: SqlAlchemy Session
         :return: Rendered Templated TI field
         """
-        result = session.query(cls.rendered_fields).filter(
-            cls.dag_id == ti.dag_id,
-            cls.task_id == ti.task_id,
-            cls.execution_date == ti.execution_date
-        ).one_or_none()
+        result = (
+            session.query(cls.rendered_fields)
+            .filter(
+                cls.dag_id == ti.dag_id, cls.task_id == ti.task_id, cls.execution_date == ti.execution_date
+            )
+            .one_or_none()
+        )
 
         if result:
             k8s_pod_yaml = result.k8s_pod_yaml

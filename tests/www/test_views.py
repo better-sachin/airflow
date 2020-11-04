@@ -2159,10 +2159,10 @@ class TestDagACLView(TestBase):
 
     def test_rendered_template_success_for_all_dag_user(self):
         self.logout()
-        self.login(username='all_dag_user',
-                   password='all_dag_user')
-        url = ('rendered-templates?task_id=runme_0&dag_id=example_bash_operator&execution_date={}'
-               .format(self.percent_encode(self.default_date)))
+        self.login(username='all_dag_user', password='all_dag_user')
+        url = 'rendered-templates?task_id=runme_0&dag_id=example_bash_operator&execution_date={}'.format(
+            self.percent_encode(self.default_date)
+        )
         resp = self.client.get(url, follow_redirects=True)
         self.check_content_in_response('Rendered Template', resp)
 

@@ -1677,8 +1677,7 @@ class TaskInstance(Base, LoggingMixin):  # pylint: disable=R0902,R0904
         pod = PodGenerator.construct_pod(
             dag_id=self.dag_id,
             task_id=self.task_id,
-            pod_id=create_pod_id(
-                self.dag_id, self.task_id),
+            pod_id=create_pod_id(self.dag_id, self.task_id),
             try_number=self.try_number,
             kube_image=kube_config.kube_image,
             date=self.execution_date,
@@ -1686,7 +1685,7 @@ class TaskInstance(Base, LoggingMixin):  # pylint: disable=R0902,R0904
             pod_override_object=PodGenerator.from_obj(self.executor_config),
             scheduler_job_id="worker-config",
             namespace=kube_config.executor_namespace,
-            base_worker_pod=PodGenerator.deserialize_model_file(kube_config.pod_template_file)
+            base_worker_pod=PodGenerator.deserialize_model_file(kube_config.pod_template_file),
         )
         pod_mutation_hook(pod)
         api_client = ApiClient()
