@@ -70,6 +70,15 @@ from airflow.utils.sqlalchemy import UtcDateTime, with_row_locks
 from airflow.utils.state import State
 from airflow.utils.timeout import timeout
 
+try:
+    from kubernetes.client.api_client import ApiClient
+
+    from airflow.executors.kubernetes_executor import KubeConfig, create_pod_id
+    from airflow.kubernetes.pod_generator import PodGenerator
+    from airflow.settings import pod_mutation_hook
+except ImportError:
+    ApiClient = None
+
 TR = TaskReschedule
 Context = Dict[str, Any]
 
@@ -1667,12 +1676,6 @@ class TaskInstance(Base, LoggingMixin):  # pylint: disable=R0902,R0904
 
     def render_k8s_pod_yaml(self) -> Optional[str]:
         """Render k8s pod yaml"""
-        from kubernetes.client.api_client import ApiClient
-
-        from airflow.executors.kubernetes_executor import KubeConfig, create_pod_id
-        from airflow.kubernetes.pod_generator import PodGenerator
-        from airflow.settings import pod_mutation_hook
-
         kube_config = KubeConfig()
         pod = PodGenerator.construct_pod(
             dag_id=self.dag_id,
