@@ -27,6 +27,7 @@ from airflow.models.base import ID_LEN, Base
 from airflow.models.taskinstance import TaskInstance
 from airflow.serialization.helpers import serialize_template_field
 from airflow.settings import json
+from airflow.utils.helpers import is_k8s_or_k8scelery_executor
 from airflow.utils.session import provide_session
 from airflow.utils.sqlalchemy import UtcDateTime
 
