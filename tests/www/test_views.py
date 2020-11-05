@@ -45,6 +45,7 @@ from airflow import models, settings, version
 from airflow.config_templates.airflow_local_settings import DEFAULT_LOGGING_CONFIG
 from airflow.configuration import conf
 from airflow.executors.celery_executor import CeleryExecutor
+from airflow.executors.executor_loader import ExecutorLoader
 from airflow.jobs.base_job import BaseJob
 from airflow.models import DAG, Connection, DagRun, TaskInstance
 from airflow.models.baseoperator import BaseOperator, BaseOperatorLink
@@ -684,7 +685,7 @@ class TestAirflowBaseViews(TestBase):
         resp = self.client.get(url, follow_redirects=True)
         self.check_content_in_response('Rendered Template', resp)
 
-    @parameterized.expand([('KubernetesExecutor'), ('CeleryKubernetesExecutor')])
+    @parameterized.expand([(ExecutorLoader.KUBERNETES_EXECUTOR), (ExecutorLoader.CELERY_KUBERNETES_EXECUTOR)])
     def test_rendered_k8s(self, executor):
         url = 'rendered-k8s?task_id=runme_0&dag_id=example_bash_operator&execution_date={}'.format(
             self.percent_encode(self.EXAMPLE_DAG_DEFAULT_DATE)
