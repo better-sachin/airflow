@@ -73,7 +73,8 @@ from airflow.utils.timeout import timeout
 try:
     from kubernetes.client.api_client import ApiClient
 
-    from airflow.executors.kubernetes_executor import KubeConfig, create_pod_id
+    from airflow.kubernetes.kube_config import KubeConfig
+    from airflow.kubernetes.kubernetes_helper_functions import create_pod_id
     from airflow.kubernetes.pod_generator import PodGenerator
     from airflow.settings import pod_mutation_hook
 except ImportError:
